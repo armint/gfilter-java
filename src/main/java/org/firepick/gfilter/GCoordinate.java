@@ -1,5 +1,7 @@
 package org.firepick.gfilter;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -59,6 +61,7 @@ public class GCoordinate implements Comparable<GCoordinate> {
 		return x != Double.POSITIVE_INFINITY && y != Double.POSITIVE_INFINITY && z != Double.POSITIVE_INFINITY;
 	}
 
+	@JsonIgnore
 	public double getNorm2() {
 		return x * x + y * y + z * z;
 	}
