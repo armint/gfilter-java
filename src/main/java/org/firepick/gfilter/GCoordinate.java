@@ -15,7 +15,7 @@ public class GCoordinate implements Comparable<GCoordinate> {
 	private double z;
 
 	public GCoordinate() {
-		this(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+		this(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
 	}
 
 	public GCoordinate(GCoordinate orig) {
@@ -56,7 +56,7 @@ public class GCoordinate implements Comparable<GCoordinate> {
 	}
 
 	boolean isValid() {
-		return x != Double.MAX_VALUE && y != Double.MAX_VALUE && z != Double.MAX_VALUE;
+		return x != Double.POSITIVE_INFINITY && y != Double.POSITIVE_INFINITY && z != Double.POSITIVE_INFINITY;
 	}
 
 	public double getNorm2() {
