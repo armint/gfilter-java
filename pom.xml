@@ -22,9 +22,9 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:git@github.com:armint/gfilter-java.git</connection>
-		<developerConnection>scm:git:git@github.com:armint/gfilter-java.git</developerConnection>
-		<url>git@github.com:armint/gfilter-java.git</url>
+		<connection>scm:git:https://github.com/armint/gfilter-java.git</connection>
+		<developerConnection>scm:git:https://github.com/armint/gfilter-java.git</developerConnection>
+		<url>https://github.com/armint/gfilter-java.git</url>
 	</scm>
 	<build>
 		<plugins>
