@@ -88,9 +88,12 @@ public class GCoordinate implements Comparable<GCoordinate> {
 	}
 
 	public GCoordinate preMultiply(Matrix3x3 mat) {
-		x = mat.at(0, 0) * getX() + mat.at(0, 1) * getY() + mat.at(0, 2) * getZ();
-		y = mat.at(1, 0) * getX() + mat.at(1, 1) * getY() + mat.at(1, 2) * getZ();
-		z = mat.at(2, 0) * getX() + mat.at(2, 1) * getY() + mat.at(2, 2) * getZ();
+		double newX = mat.at(0, 0) * getX() + mat.at(0, 1) * getY() + mat.at(0, 2) * getZ();
+		double newY = mat.at(1, 0) * getX() + mat.at(1, 1) * getY() + mat.at(1, 2) * getZ();
+		double newZ = mat.at(2, 0) * getX() + mat.at(2, 1) * getY() + mat.at(2, 2) * getZ();
+		this.x = newX;
+		this.y = newY;
+		this.z = newZ;
 		return this;
 	}
 
@@ -110,13 +113,17 @@ public class GCoordinate implements Comparable<GCoordinate> {
 
 	public GCoordinate barycentric(GCoordinate c1, GCoordinate c2, GCoordinate c3, GCoordinate c4) {
 		Matrix3x3 T = new Matrix3x3(c1.x - c4.x, c2.x - c4.x, c3.x - c4.x, c1.y - c4.y, c2.y - c4.y, c3.y - c4.y, c1.z - c4.z, c2.z - c4.z, c3.z - c4.z);
+		log.trace("Matrix T: " + T);
 		Matrix3x3 Tinv = T.inverse();
+		log.trace("Matrix Tinv: " + Tinv);
 		if (Tinv == null) {
 			log.debug("GCoord::barycentric failed " + c1 + " " + c2 + " " + c3 + " " + c4);
 			return null; // invalid
 		}
 		subtract(c4);
+		log.trace("cc4: " + this);
 		preMultiply(Tinv);
+		log.trace("result: " + this);
 		return this;
 	}
 

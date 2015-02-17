@@ -9,5 +9,7 @@ public abstract class GFilter {
 	protected GFilter() {
 		_name = "IGFilter";
 	}
+	
+//	public abstract void writeln(String value);
 
 }
