@@ -57,7 +57,6 @@ public class MappedPointFilter extends GFilterBase {
 			result.add(mapping.entrySet().iterator().next().getValue().getRange());
 			result.subtract(mapping.entrySet().iterator().next().getValue().getDomain());
 			return result;
-			// return domain + mapping.begin()->second.range - mapping.begin()->second.domain;
 		case 2:
 			log.error("2-point mapping is undefined"); // translate and scale?
 			assert (false);
@@ -99,8 +98,6 @@ public class MappedPointFilter extends GFilterBase {
 				range = neighborhood.get(0).getRange().preMultiply(bc.getX()).add(neighborhood.get(1).getRange().preMultiply(bc.getY()))
 						.add(neighborhood.get(2).getRange().preMultiply(bc.getZ())).add(neighborhood.get(3).getRange().preMultiply(bc4));
 				range.trunc(5);
-				// LOGTRACE4("barycentric(%g,%g,%g,%g)", bc.getX(), bc.getY(), bc.getZ(), bc4);
-				// LOGTRACE3("barycentric => (%g,%g,%g)", range.getX(), range.getY(), range.getZ());
 			} else {
 				log.debug("degenerate tetrahedron");
 			}
@@ -147,9 +144,6 @@ public class MappedPointFilter extends GFilterBase {
 				int n = Math.min(4, (int) neighborhood.size() + 1);
 				for (int i = 0; i < n; i++) {
 					if (dist2 < dist[i]) { // insert here
-					// if (dist[i] < Double.MAX_VALUE) {
-					// } else {
-					// }
 						neighborhood.add(i, new MappedPoint(entry.getValue()));
 						for (int j = n; --j > i;) {
 							dist[j] = dist[j - 1];
