@@ -49,7 +49,7 @@ public class Matrix3x3 implements Serializable {
 
 	public double at(int y, int x) {
 		return elements[y * 3 + x];
-	};
+	}
 
 	public void setValues(double[] values) {
 		for (int i = 0; i < values.length; i++) {

@@ -41,7 +41,7 @@ public class GCoordinateTest {
 
 		GCoordinate pt1 = new GCoordinate(0, 1.5, 2.6);
 		double pt1_d2 = new GCoordinate(.4, .1, .5).distance2(pt1.barycentric(a, b, c, d));
-		assert (pt1_d2 < 1e-30);
+		Assert.assertTrue(pt1_d2 < 1e-30);
 		GCoordinate pt2 = new GCoordinate(-.01, 1.5, 2.6);
 		Assert.assertTrue(new GCoordinate(0.37, 0.11, 0.51).distance2(pt2.barycentric(a, b, c, d)) < 1e-10);
 		GCoordinate pt3 = new GCoordinate(+.01, 1.5, 2.6);
