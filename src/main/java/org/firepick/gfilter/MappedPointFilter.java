@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class MappedPointFilter extends GFilterBase {
 	public final static double WEIGHTING_DISTANCE = 0.001; /* All points within this distance are treated the same */
 
-	private GCoordinate domain; // current input domain position
 	private double domainRadius;
 	private Map<GCoordinate, MappedPoint> mapping;
 
@@ -30,7 +29,6 @@ public class MappedPointFilter extends GFilterBase {
 		super(next);
 		_name = "MappedPointFilter";
 		domainRadius = 0;
-		domain = new GCoordinate(0, 0, 0);
 		log.info("MappedPointFilter()");
 		mapping = new TreeMap<GCoordinate, MappedPoint>();
 	}
@@ -49,13 +47,13 @@ public class MappedPointFilter extends GFilterBase {
 		}
 	}
 
-	public GCoordinate interpolate(GCoordinate domainXYZ) {
+	public GCoordinate interpolate(GCoordinate domain) {
 		switch (mapping.size()) {
 		case 0: // No transformation
 			log.trace("no interpolation mapping");
-			return domainXYZ;
+			return domain;
 		case 1: // a single mapped point defines a universal translation
-			GCoordinate result = new GCoordinate(domainXYZ);
+			GCoordinate result = new GCoordinate(domain);
 			result.add(mapping.entrySet().iterator().next().getValue().getRange());
 			result.subtract(mapping.entrySet().iterator().next().getValue().getDomain());
 			return result;
@@ -74,19 +72,19 @@ public class MappedPointFilter extends GFilterBase {
 
 		// interpolate point cloud using simplex barycentric interpolation
 		// double maxDist2 = domainRadius * domainRadius;
-		ArrayList<MappedPoint> neighborhood = domainNeighborhood(domainXYZ, domainRadius);
-		log.debug("interpolate(" + domainXYZ + ") neighborhood:" + (int) neighborhood.size());
+		ArrayList<MappedPoint> neighborhood = domainNeighborhood(domain, domainRadius);
+		log.debug("interpolate(" + domain + ") neighborhood:" + (int) neighborhood.size());
 
 		GCoordinate range = null;
 		int n = neighborhood.size();
 		if (log.isTraceEnabled()) {
 			for (int i = 0; i < n; i++) {
-				log.trace("neighborhood[" + i + "]: " + neighborhood.get(i) + " " + domainXYZ.distance2(neighborhood.get(i).getDomain()));
+				log.trace("neighborhood[" + i + "]: " + neighborhood.get(i) + " " + domain.distance2(neighborhood.get(i).getDomain()));
 			}
 		}
 		switch (neighborhood.size()) {
 		case 0: // no mapping => no change
-			range = domainXYZ;
+			range = domain;
 			break;
 		case 1:
 		case 2:
@@ -95,8 +93,8 @@ public class MappedPointFilter extends GFilterBase {
 			break;
 		default: // the first four are the closest and are used as the tetrahedron vertices
 		case 4: {
-			GCoordinate bc = domainXYZ.barycentric(neighborhood.get(0).getDomain(), neighborhood.get(1).getDomain(), neighborhood.get(2).getDomain(), neighborhood.get(3).getDomain());
-			if (bc.isValid()) {
+			GCoordinate bc = domain.barycentric(neighborhood.get(0).getDomain(), neighborhood.get(1).getDomain(), neighborhood.get(2).getDomain(), neighborhood.get(3).getDomain());
+			if (bc != null && bc.isValid()) {
 				double bc4 = 1 - (bc.getX() + bc.getY() + bc.getZ());
 				range = neighborhood.get(0).getRange().preMultiply(bc.getX()).add(neighborhood.get(1).getRange().preMultiply(bc.getY()))
 						.add(neighborhood.get(2).getRange().preMultiply(bc.getZ())).add(neighborhood.get(3).getRange().preMultiply(bc4));
@@ -117,7 +115,7 @@ public class MappedPointFilter extends GFilterBase {
 			double wt = 0;
 			range = new GCoordinate(0, 0, 0);
 			for (int i = 0; i < n1; i++) {
-				double d = domainXYZ.distance2(neighborhood.get(i).getDomain());
+				double d = domain.distance2(neighborhood.get(i).getDomain());
 				d = Math.max(d, WEIGHTING_DISTANCE * WEIGHTING_DISTANCE);
 				w[i] = 1 / Math.sqrt(d);
 				wt += w[i];
@@ -134,7 +132,7 @@ public class MappedPointFilter extends GFilterBase {
 
 	}
 
-	public ArrayList<MappedPoint> domainNeighborhood(GCoordinate domainXYZ, double radius) {
+	public ArrayList<MappedPoint> domainNeighborhood(GCoordinate domain, double radius) {
 		double maxDist2 = radius * radius;
 		ArrayList<MappedPoint> neighborhood = new ArrayList<MappedPoint>();
 		double dist[] = new double[4]; // sort top 4 for barycentric tetrahedron

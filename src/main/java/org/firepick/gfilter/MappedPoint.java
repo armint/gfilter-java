@@ -34,4 +34,9 @@ public class MappedPoint implements Comparable<MappedPoint> {
 		return domain.compareTo(o.domain);
 	}
 
+	public MappedPoint(MappedPoint o) {
+		domain = new GCoordinate(o.domain);
+		range = new GCoordinate(o.range);
+	}
+
 }
