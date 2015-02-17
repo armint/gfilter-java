@@ -1,5 +1,7 @@
 package org.firepick.gfilter;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -7,6 +9,10 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import lombok.extern.log4j.Log4j;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Log4j
 public class MappedPointFilter extends GFilterBase {
@@ -16,6 +22,10 @@ public class MappedPointFilter extends GFilterBase {
 	private double domainRadius;
 	private Map<GCoordinate, MappedPoint> mapping;
 
+	static class Container {
+		public ArrayList<MappedPoint> map;
+	}
+	
 	protected MappedPointFilter(GFilter next) {
 		super(next);
 		_name = "MappedPointFilter";
@@ -25,8 +35,18 @@ public class MappedPointFilter extends GFilterBase {
 		mapping = new TreeMap<GCoordinate, MappedPoint>();
 	}
 
-	public int configure() {
-		return 0;
+	protected MappedPointFilter(GFilter next, Reader reader) throws JsonParseException, JsonMappingException, IOException {
+		this(next);
+		configure(reader);
+	}
+	
+	public void configure(Reader reader) throws JsonParseException, JsonMappingException, IOException {
+		log.debug("MappedPointFilter.configure()");
+		ObjectMapper mapper = new ObjectMapper();
+		Container c = mapper.readValue(reader, Container.class);
+		for (MappedPoint mappedPoint : c.map) {
+			mapPoint(mappedPoint.getDomain(), mappedPoint.getRange());
+		}
 	}
 
 	public GCoordinate interpolate(GCoordinate domainXYZ) {
@@ -155,9 +175,13 @@ public class MappedPointFilter extends GFilterBase {
 			log.info("MappedPointFilter() domainRadius:" + domainRadius);
 		}
 
-		MappedPoint po = mapping.get(domain);
-		po.setDomain(domain);
-		po.setRange(range);
+		MappedPoint point = mapping.get(domain);
+		if (point == null) {
+			point = new MappedPoint();
+			mapping.put(domain, point);
+		}
+		point.setDomain(domain);
+		point.setRange(range);
 	}
 
 	public double getDomainRadius() {

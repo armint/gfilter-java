@@ -111,7 +111,7 @@ public class GCoordinate implements Comparable<GCoordinate> {
 	public GCoordinate barycentric(GCoordinate c1, GCoordinate c2, GCoordinate c3, GCoordinate c4) {
 		Matrix3x3 T = new Matrix3x3(c1.x - c4.x, c2.x - c4.x, c3.x - c4.x, c1.y - c4.y, c2.y - c4.y, c3.y - c4.y, c1.z - c4.z, c2.z - c4.z, c3.z - c4.z);
 		Matrix3x3 Tinv = T.inverse();
-		if (Tinv != null) {
+		if (Tinv == null) {
 			log.debug("GCoord::barycentric failed " + c1 + " " + c2 + " " + c3 + " " + c4);
 			return null; // invalid
 		}
