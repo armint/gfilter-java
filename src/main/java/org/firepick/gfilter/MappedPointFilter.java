@@ -25,7 +25,7 @@ public class MappedPointFilter extends GFilterBase {
 	static class Container {
 		public ArrayList<MappedPoint> map;
 	}
-	
+
 	protected MappedPointFilter(GFilter next) {
 		super(next);
 		_name = "MappedPointFilter";
@@ -39,7 +39,7 @@ public class MappedPointFilter extends GFilterBase {
 		this(next);
 		configure(reader);
 	}
-	
+
 	public void configure(Reader reader) throws JsonParseException, JsonMappingException, IOException {
 		log.debug("MappedPointFilter.configure()");
 		ObjectMapper mapper = new ObjectMapper();
@@ -53,10 +53,12 @@ public class MappedPointFilter extends GFilterBase {
 		switch (mapping.size()) {
 		case 0: // No transformation
 			log.trace("no interpolation mapping");
-			return domain;
+			return domainXYZ;
 		case 1: // a single mapped point defines a universal translation
-			GCoordinate result = new GCoordinate(domain);
-			return result.add(mapping.entrySet().iterator().next().getValue().getRange()).subtract(mapping.entrySet().iterator().next().getValue().getDomain());
+			GCoordinate result = new GCoordinate(domainXYZ);
+			result.add(mapping.entrySet().iterator().next().getValue().getRange());
+			result.subtract(mapping.entrySet().iterator().next().getValue().getDomain());
+			return result;
 			// return domain + mapping.begin()->second.range - mapping.begin()->second.domain;
 		case 2:
 			log.error("2-point mapping is undefined"); // translate and scale?
@@ -71,20 +73,20 @@ public class MappedPointFilter extends GFilterBase {
 		}
 
 		// interpolate point cloud using simplex barycentric interpolation
-//		double maxDist2 = domainRadius * domainRadius;
-		ArrayList<MappedPoint> neighborhood = domainNeighborhood(domain, domainRadius);
-		log.debug("interpolate(" + domain + ") neighborhood:" + (int) neighborhood.size());
+		// double maxDist2 = domainRadius * domainRadius;
+		ArrayList<MappedPoint> neighborhood = domainNeighborhood(domainXYZ, domainRadius);
+		log.debug("interpolate(" + domainXYZ + ") neighborhood:" + (int) neighborhood.size());
 
 		GCoordinate range = null;
 		int n = neighborhood.size();
 		if (log.isTraceEnabled()) {
 			for (int i = 0; i < n; i++) {
-				log.trace("neighborhood[" + i + "]: " + neighborhood.get(i) + " " + domain.distance2(neighborhood.get(i).getDomain()));
+				log.trace("neighborhood[" + i + "]: " + neighborhood.get(i) + " " + domainXYZ.distance2(neighborhood.get(i).getDomain()));
 			}
 		}
 		switch (neighborhood.size()) {
 		case 0: // no mapping => no change
-			range = domain;
+			range = domainXYZ;
 			break;
 		case 1:
 		case 2:
@@ -93,7 +95,7 @@ public class MappedPointFilter extends GFilterBase {
 			break;
 		default: // the first four are the closest and are used as the tetrahedron vertices
 		case 4: {
-			GCoordinate bc = domain.barycentric(neighborhood.get(0).getDomain(), neighborhood.get(1).getDomain(), neighborhood.get(2).getDomain(), neighborhood.get(3).getDomain());
+			GCoordinate bc = domainXYZ.barycentric(neighborhood.get(0).getDomain(), neighborhood.get(1).getDomain(), neighborhood.get(2).getDomain(), neighborhood.get(3).getDomain());
 			if (bc.isValid()) {
 				double bc4 = 1 - (bc.getX() + bc.getY() + bc.getZ());
 				range = neighborhood.get(0).getRange().preMultiply(bc.getX()).add(neighborhood.get(1).getRange().preMultiply(bc.getY()))
@@ -115,7 +117,7 @@ public class MappedPointFilter extends GFilterBase {
 			double wt = 0;
 			range = new GCoordinate(0, 0, 0);
 			for (int i = 0; i < n1; i++) {
-				double d = domain.distance2(neighborhood.get(i).getDomain());
+				double d = domainXYZ.distance2(neighborhood.get(i).getDomain());
 				d = Math.max(d, WEIGHTING_DISTANCE * WEIGHTING_DISTANCE);
 				w[i] = 1 / Math.sqrt(d);
 				wt += w[i];
@@ -147,10 +149,10 @@ public class MappedPointFilter extends GFilterBase {
 				int n = Math.min(4, (int) neighborhood.size() + 1);
 				for (int i = 0; i < n; i++) {
 					if (dist2 < dist[i]) { // insert here
-//						if (dist[i] < Double.MAX_VALUE) {
-//						} else {
-//						}
-						neighborhood.add(i, entry.getValue());
+					// if (dist[i] < Double.MAX_VALUE) {
+					// } else {
+					// }
+						neighborhood.add(i, new MappedPoint(entry.getValue()));
 						for (int j = n; --j > i;) {
 							dist[j] = dist[j - 1];
 						}
@@ -160,7 +162,7 @@ public class MappedPointFilter extends GFilterBase {
 					}
 				}
 				if (!inserted) {
-					neighborhood.add(entry.getValue());
+					neighborhood.add(new MappedPoint(entry.getValue()));
 				}
 			}
 		}
